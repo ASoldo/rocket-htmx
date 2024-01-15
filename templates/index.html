@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Rocket Webpage</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/client-side-templates.js"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
+    <script src="https://unpkg.com/mustache@latest"></script>
+    <script defer src="https://unpkg.com/@alpinejs/morph@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+        .soldo-red {
+          background-color: red;
+        }
+      }
+      @layer components {
+        .soldo-primarni {
+          @apply py-2 px-4 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75;
+        }
+      }
+      @layer soldo {
+        .soldo2 {
+          background-color: red;
+        }
+      }
+    </style>
+</head>
+
+<body x-data="{name: 'Andrejovskiiii', message: 'I ❤️ Alpine'}">
+    <div class="soldo-primarni">
+        <h1 x-text="name"></h1>
+        <h1 x-text="message"></h1>
+    </div>
+    <div id="increment" hx-get="/increment" hx-on--before-request="console.log(this, event)"
+        hx-on--after-request="console.log(this, event)" hx-target="#increment" hx-trigger="load, click"
+        class="soldo-primarni"></div>
+    <div id="increment-user" hx-get="/increment-user" hx-target="#increment-user" hx-trigger="load, click"
+        class="soldo-primarni"></div>
+
+    <div id="comp1" hx-get="/comp1" hx-target="#comp1" hx-trigger="load" class="soldo-primarni"></div>
+    <div hx-get="/clock" hx-swap="innerHTML" hx-trigger="load"></div>
+    <div hx-ext="sse" sse-connect="/events" sse-swap="message" hx-target="#event" hx-swap="beforeend">
+        <div id="event"></div>
+    </div>
+    <div class="soldo2 w-2 h-2"></div>
+</body>
+
+</html>

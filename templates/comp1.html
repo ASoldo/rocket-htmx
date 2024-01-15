@@ -1,0 +1,77 @@
+<div class="bg-red-500" name="comp1" x-data="
+{
+  name: 'Andrija',
+  soki: function() {
+  console.log('Ojla {{name}} {{last_name}}', this.name);
+  },
+  createComponent: function(props) {
+     return {
+        ...props,
+        soki: function() {
+  console.log('Ojla {{name}} {{last_name}}', this.name);
+        }
+     };
+  }
+}
+">
+  <h1>Soldo ovo je server componenta</h1>
+  <div x-init="soki">
+    <h1 x-text="name" class="text-white"></h1>
+  </div>
+
+  <div x-html="$refs.comp.innerHTML"></div>
+  <div x-html="$refs.comp2.innerHTML" x-init="console.log($refs.comp2)"></div>
+  <div name="custom component" x-data="createComponent({name: 'Hebrang'})">
+    <h1 x-text="name"></h1>
+  </div>
+
+  <div name="store" x-data="{store: $store}"
+    x-init="Alpine.store('name', 'Andrija olaf'),Alpine.store('stats', {hp: 1, spd: 2, int: 3})">
+    <h1 x-text="store.name"></h1>
+    <h1 x-text="store.stats.hp"></h1>
+    <h1 x-text="store.stats.spd"></h1>
+    <h1 x-text="store.stats.int"></h1>
+  </div>
+
+  <div x-ref="comp">
+    <h1>This is comp {{name}} {{last_name}}</h1>
+  </div>
+
+  <div hx-ext="client-side-templates">
+    <button hx-get="https://jsonplaceholder.typicode.com/todos/2" hx-swap="innerHTML" hx-target="#content"
+      mustache-template="foo">
+      Click Me
+    </button>
+
+    <p id="content">Start</p>
+  </div>
+
+  <template id="foo">
+    <p class="bg-blue-300">
+      {% raw %}{{userID}}{% endraw %} and {% raw %}{{id}}{% endraw %} and {% raw
+      %}{{title}}{% endraw %} and {% raw %}{{completed}}{% endraw %}
+    </p>
+  </template>
+
+  <template x-ref="comp2">
+    <div @soldo="alert(`Olla Soldo emited: ${$event.detail.clicked}`)" name="Moja komponenta"
+      x-data="{name: 'Template Name'}">
+      <h1>Template</h1>
+      <h1 x-text="name"></h1>
+      <button type="button" @click="$dispatch('soldo', {clicked: true})">
+        Click me for soldo
+      </button>
+    </div>
+    <style>
+      @scope {
+        :scope {
+          background: blue;
+        }
+
+        div {
+          outline: 10px solid green;
+        }
+      }
+    </style>
+  </template>
+</div>

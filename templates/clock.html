@@ -1,0 +1,45 @@
+<div x-data="{
+                hourDegree: 0,
+                minuteDegree: 0,
+                secondDegree: 0,
+                start: function () {
+                    this.updateTime();
+                    setInterval(() => this.updateTime(), 1000);
+                },
+                updateTime: function () {
+                    const now = new Date();
+                    const hours = now.getHours();
+                    const minutes = now.getMinutes();
+                    const seconds = now.getSeconds();
+                    this.hourDegree = ((hours % 12) / 12) * 360 + ((minutes / 60) * 30);
+                    this.minuteDegree = (minutes / 60) * 360 + ((seconds / 60) * 6);
+                    this.secondDegree = (seconds / 60) * 360;
+                }
+            }" x-init="start()"
+  class="relative bg-black hover:bg-white transition-all duration-1000 w-36 h-36 rounded-full border border-cyan-500 m-5 overflow-hidden"
+  style="
+    box-shadow:
+      0 0 5px #00ffff,
+      0 0 10px #00ffff,
+      0 0 15px #00ffff,
+      0 0 20px #00ffff;
+  ">
+  <div class="dot-wrapper" style="transform: rotate(-9deg) translateY(70px) translateX(-13px)">
+    <template x-for="i in 12" :key="i">
+      <div class="absolute top-1/2 left-1/2 w-1 h-1 bg-cyan-500 rounded-full"
+        :style="`transform: translate(0%, -50%) rotate(${(i * 30) - 90}deg) translateX(-40px) translateY(50px);`"></div>
+    </template>
+  </div>
+  <div class="absolute inset-4 flex items-center justify-center">
+    <div class="bg-cyan-500 w-1.5 h-1.5 rounded-full" style=""></div>
+  </div>
+  <div class="absolute inset-0 flex justify-center" :style="`transform: rotate(${hourDegree}deg);`">
+    <div class="animate-glow-blue bg-blue-500 w-1 h-8 rounded"></div>
+  </div>
+  <div class="absolute inset-0 flex justify-center" :style="`transform: rotate(${minuteDegree}deg);`">
+    <div class="animate-glow-green bg-green-500 w-0.5 h-12 rounded"></div>
+  </div>
+  <div class="absolute inset-0 flex justify-center" :style="`transform: rotate(${secondDegree}deg);`">
+    <div class="animate-glow-red bg-red-500 w-0.5 h-14 rounded"></div>
+  </div>
+</div>
