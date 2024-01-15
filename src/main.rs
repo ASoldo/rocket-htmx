@@ -4,8 +4,6 @@
 // Import the Rocket and Serde crates, including their macros
 #[macro_use]
 extern crate rocket;
-// use rocket::futures::lock::Mutex;
-use rocket_contrib::templates::Template;
 #[macro_use]
 extern crate serde;
 
@@ -236,7 +234,7 @@ fn get_clock() -> content::RawHtml<String> {
         }
     };
 
-    let mut context = Context::new();
+    let context = Context::new();
 
     let rendered = tera
         .render("clock.html", &context)
@@ -301,142 +299,9 @@ fn create_post(post: Json<Post>, blog_posts: &State<BlogPosts>) -> Json<Post> {
     Json(new_post)
 }
 
-#[derive(Debug)]
-enum Soldo {
-    A,
-    B,
-    C,
-}
-
-#[derive(Debug)]
-enum BinaryTree<T> {
-    Empty,
-    NonEmpty(Box<TreeNode<T>>),
-}
-
-#[derive(Debug)]
-struct TreeNode<T> {
-    element: T,
-    left: BinaryTree<T>,
-    right: BinaryTree<T>,
-}
-
-impl<T> BinaryTree<T> {
-    fn add(&mut self, value: T)
-    where
-        T: Ord,
-    {
-        match self {
-            BinaryTree::Empty => {
-                *self = BinaryTree::NonEmpty(Box::new(TreeNode {
-                    element: value,
-                    left: BinaryTree::Empty,
-                    right: BinaryTree::Empty,
-                }))
-            }
-            BinaryTree::NonEmpty(node) => {
-                if value < node.element {
-                    node.left.add(value);
-                } else if value > node.element {
-                    node.right.add(value);
-                }
-            }
-        }
-    }
-
-    fn print(&self)
-    where
-        T: std::fmt::Debug,
-    {
-        match self {
-            BinaryTree::Empty => (),
-            BinaryTree::NonEmpty(node) => {
-                node.left.print();
-                println!("{:?}", node.element);
-                node.right.print();
-            }
-        }
-    }
-
-    fn contains(&self, value: T) -> bool
-    where
-        T: Ord,
-    {
-        match self {
-            BinaryTree::Empty => false,
-            BinaryTree::NonEmpty(node) => {
-                if value < node.element {
-                    node.left.contains(value)
-                } else if value > node.element {
-                    node.right.contains(value)
-                } else {
-                    true // value is equal to node.element
-                }
-            }
-        }
-    }
-}
-
-fn word_to_number(word: &str) -> u32 {
-    word.bytes().map(u32::from).sum()
-}
-
 // Define the main function that launches the Rocket server
 #[launch]
 fn rocket() -> _ {
-    let neki: Soldo = Soldo::A;
-    let drugi: Pokemon = Pokemon {
-        name: String::from("Soldo"),
-        id: 0,
-        sprites: Sprites {
-            front_default: String::from("htt"),
-        },
-    };
-    let treci: Soldo = Soldo::C;
-
-    match neki {
-        Soldo::A => {
-            println!(" It's A, {:?}", neki)
-        }
-        Soldo::B => {}
-        Soldo::C => {}
-    }
-
-    let mut tree = BinaryTree::Empty;
-    tree.add(1);
-    tree.add(4);
-    tree.add(11);
-    tree.add(8);
-    tree.add(5);
-    tree.add(2);
-    tree.add(6);
-    tree.add(10);
-    tree.add(7);
-    tree.add(9);
-    tree.add(3);
-    tree.add(12);
-    tree.print();
-
-    println!("Does it contain 12: {:?}", tree.contains(12));
-    println!("Does it contain 200: {:?}", tree.contains(200));
-    println!("Does it contain 2: {:?}", tree.contains(2));
-
-    let text = "hello world this is a test";
-    let words: Vec<_> = text.split_whitespace().collect();
-
-    let mut tree = BinaryTree::Empty;
-    for word in &words {
-        tree.add(word_to_number(word));
-    }
-
-    let query_word = "test";
-    let query_number = word_to_number(query_word);
-    if tree.contains(query_number) {
-        println!("The tree contains {}!", query_word)
-    } else {
-        println!("The tree does not contain {}!", query_word);
-    }
-
     // Create the BlogPosts instance with an empty HashMap
     let blog_posts: BlogPosts = Arc::new(Mutex::new(HashMap::new()));
     let example_post_id = Uuid::new_v4().to_string();
