@@ -10,14 +10,17 @@ extern crate serde;
 // Import necessary modules and types
 use reqwest;
 use rocket::fairing::{Fairing, Info, Kind};
+use rocket::futures::{SinkExt, StreamExt};
 use rocket::get;
 use rocket::http::{Cookie, CookieJar, Header};
 use rocket::response::content;
 use rocket::response::stream::EventStream;
 use rocket::serde::json::Json;
+use rocket::serde::json::Value;
 use rocket::tokio::time::{interval, Duration};
 use rocket::{response::stream::Event, State};
 use rocket::{Request, Response};
+use rocket_ws::{Channel, Message, WebSocket};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tera::Context;
@@ -46,27 +49,73 @@ impl Fairing for CORS {
     }
 }
 
-// #[get("/events")]
-// fn events() -> EventStream![] {
-//     let mut interval = interval(Duration::from_secs(1));
-//     EventStream! {
-//         interval.tick().await;
-//      yield Event::data("Hello, world!".to_string()).id("1");
-//     }
+// #[get("/echo?channel")]
+// fn echo_channel(ws: WebSocket) -> Channel<'static> {
+//     ws.channel(move |mut stream| {
+//         Box::pin(async move {
+//             // Send a message as soon as the client connects
+//             let welcome_message =
+//                 Message::Text("<div id='chat_room'>You are connected</div>".to_string());
+//             if let Err(e) = stream.send(welcome_message).await {
+//                 println!("Failed to send welcome message: {}", e);
+//             }
+//
+//             // Echo back any received messages
+//             while let Some(message) = stream.next().await {
+//                 if let Err(e) = stream.send(message?).await {
+//                     println!("Failed to send message: {}", e);
+//                 }
+//             }
+//             Ok(())
+//         })
+//     })
 // }
 
-// #[get("/events")]
-// fn events() -> EventStream![] {
-//     let mut interval = interval(Duration::from_secs(1));
-//     EventStream! {
-//     loop {
-//         interval.tick().await;
-//         let message = format!(r#"<div>Ojla from events</div>"#);
-//
-//          yield Event::data(message).id("1");
-//         }
-//     }
-// }
+#[get("/echo?channel")]
+fn echo_channel(ws: WebSocket) -> Channel<'static> {
+    ws.channel(move |mut stream| {
+        Box::pin(async move {
+            // Send a welcome message as soon as the client connects
+            let welcome_message =
+                Message::Text("<div id=\"chat_room\" class=\"bg-green-500\">You are connected<br></div>".to_string());
+            if let Err(e) = stream.send(welcome_message).await {
+                println!("Failed to send welcome message: {}", e);
+            }
+
+            // Echo back any received messages
+            while let Some(message) = stream.next().await {
+                match message {
+                    Ok(Message::Text(text)) => {
+                        // Attempt to parse the text as JSON
+                        if let Ok(parsed) =
+                            serde_json::from_str::<HashMap<String, serde_json::Value>>(&text)
+                        {
+                            // Check if the message has the "chat_message" key
+                            if let Some(Value::String(chat_message)) = parsed.get("chat_message") {
+                                // Format the message as HTML
+                                let formatted_message = format!(
+                                    "<div id=\"chat_room\" hx-swap-oob=\"beforeend\" class=\"bg-green-500\">{}<br></div>",
+                                    chat_message
+                                );
+
+                                // Send the formatted message
+                                if let Err(e) = stream.send(Message::Text(formatted_message)).await
+                                {
+                                    println!("Failed to send formatted message: {}", e);
+                                }
+                            }
+                        } else {
+                            println!("Failed to parse received text as JSON: {}", text);
+                        }
+                    }
+                    Err(e) => println!("Error receiving message: {}", e),
+                    _ => {}
+                }
+            }
+            Ok(())
+        })
+    })
+}
 
 #[get("/events")]
 fn events() -> EventStream![] {
@@ -90,18 +139,6 @@ fn events() -> EventStream![] {
         }
     }
 }
-
-// #[get("/events")]
-// fn events() -> EventStream![] {
-//     let mut interval = interval(Duration::from_secs(1));
-//     EventStream! {
-//     loop {
-//         interval.tick().await;
-//
-//          yield Event::data("Hello, world!".to_string()).id("1");
-//         }
-//     }
-// }
 
 #[get("/hello/<name>")]
 fn hello(name: String) -> content::RawHtml<String> {
@@ -334,7 +371,8 @@ fn rocket() -> _ {
                 get_comp,
                 get_comp_user,
                 get_clock,
-                events
+                events,
+                echo_channel
             ],
         )
 }
